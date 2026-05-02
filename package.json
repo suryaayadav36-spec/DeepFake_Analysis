@@ -1,17 +1,24 @@
 {
   "name": "deepfake-analysis",
   "version": "1.0.0",
-  "description": "Deepfake analysis demo with image and video upload workflows.",
+  "description": "Hackathon-ready deepfake analysis platform with TensorFlow.js CNN and LSTM training pipelines.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "train:cnn": "node CNN/train.js CNN/dataset CNN/saved-model 12 16",
-    "train:lstm": "node LSTM/train.js LSTM/dataset LSTM/saved-model 12 8 12 64"
+    "dev": "PORT=3000 node server.js",
+    "train:cnn": "node CNN/train.js CNN/dataset CNN/saved-model 20 16",
+    "train:lstm": "node LSTM/train.js LSTM/dataset LSTM/saved-model 20 8 12 64",
+    "check:data": "node scripts/check-dataset.js"
   },
   "keywords": [
     "deepfake",
     "analysis",
-    "demo"
+    "tensorflowjs",
+    "computer-vision",
+    "hackathon"
   ],
+  "dependencies": {
+    "@tensorflow/tfjs-node": "^4.22.0"
+  },
   "license": "MIT"
 }

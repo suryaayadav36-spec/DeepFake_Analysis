@@ -1,0 +1,9 @@
+node_modules/
+CNN/saved-model/
+LSTM/saved-model/
+CNN/dataset/train/
+CNN/dataset/val/
+LSTM/dataset/train/
+LSTM/dataset/val/
+.DS_Store
+npm-debug.log*

@@ -1,145 +1,142 @@
-# 🧠 Deepfake Detection System (CNN + LSTM)
+# DeepFake Analysis
 
-A powerful and flexible Deepfake Detection system built using **TensorFlow.js** and **Node.js**, designed to detect manipulated media through both **image-based** and **video-based** analysis.
+Hackathon-ready deepfake detection lab built with Node.js and TensorFlow.js. The project includes a polished reviewer dashboard, a trainable CNN image classifier, an LSTM sequence classifier for video features, model-readiness reporting, and clear dataset contracts.
 
----
+## What It Does
 
-## 🚀 Features
+- Analyzes images through the CNN route.
+- Analyzes videos through the LSTM route.
+- Shows a reviewer-friendly risk score, decision, and evidence signals.
+- Detects whether trained model reports exist and surfaces validation accuracy.
+- Provides real TensorFlow.js training scripts for both image and temporal models.
 
-* 🖼️ **Image Deepfake Detection (CNN)**
+## Quick Start
 
-  * Classifies images as **Real** or **Fake**
-  * Uses Convolutional Neural Networks for high-quality feature extraction
-
-* 🎥 **Video Deepfake Detection (LSTM)**
-
-  * Analyzes sequences of frames for temporal inconsistencies
-  * Utilizes Long Short-Term Memory (LSTM) networks
-
-* ⚡ **JavaScript-Based Machine Learning**
-
-  * Built entirely with TensorFlow.js
-  * Seamless integration with Node.js applications
-
-* 🔄 **Modular Architecture**
-
-  * Separate pipelines for CNN and LSTM
-  * Easy to extend and customize
-
----
-
-## 📁 Project Structure
-
-```id="a9g4bf"
-Deepfake(CNN)/
-│
-├── Deepfake/
-│   ├── CNN/
-│   │   ├── train.js
-│   │   ├── dataset/
-│   │   └── saved-model/
-│   │
-│   ├── LSTM/
-│   │   ├── train.js
-│   │   ├── dataset/
-│   │   └── saved-model/
-│   │
-│   ├── node_modules/
-│   ├── package.json
-│   └── README.md
-```
-
----
-## 🛠️ Tech Stack
-
-* **Node.js**
-* **TensorFlow.js**
-* **JavaScript (ES6)**
-* **FFmpeg** (for video frame processing)
-
----
-## 📦 Installation
-
-```bash id="2v1l1p"
-git clone https://github.com/your-username/deepfake-detection.git
-cd deepfake-detection
+```bash
 npm install
+npm start
 ```
 
----
-## 📊 Dataset Structure
+Open:
 
-### CNN (Image Dataset)
-
-```id="k37p5n"
-dataset/
- ├── train/
- │    ├── real/
- │    └── fake/
- └── val/
-      ├── real/
-      └── fake/
+```text
+http://localhost:3000
 ```
 
----
+## Project Structure
 
-### LSTM (Frame Sequences)
-
-```id="ql3jpw"
-dataset/
- ├── sample-001/
- │    ├── frame-001.jpg
- │    ├── frame-002.jpg
- │    └── ...
+```text
+CNN/
+  train.js
+  dataset/
+  saved-model/
+LSTM/
+  train.js
+  dataset/
+  saved-model/
+public/
+  index.html
+  style.css
+  app.js
+scripts/
+  check-dataset.js
+server.js
+package.json
 ```
 
----
-## 🧪 Training
+## Dataset Setup
 
-### ▶️ Train CNN Model
+CNN image dataset:
 
-```bash id="b4m8q7"
-node CNN/train.js CNN/dataset CNN/saved-model 12 16
+```text
+CNN/dataset/
+  train/
+    real/
+    fake/
+  val/
+    real/
+    fake/
 ```
 
----
+LSTM feature dataset:
 
-### ▶️ Train LSTM Model
-
-```bash id="u7z8wd"
-node LSTM/train.js LSTM/dataset LSTM/saved-model 12 8 12 64
+```text
+LSTM/dataset/
+  train/
+    sample-001.json
+  val/
+    sample-101.json
 ```
 
----
+Each LSTM JSON file:
 
-## 💡 Highlights
+```json
+{
+  "id": "sample-001",
+  "label": 1,
+  "features": [
+    [0.12, 0.41, 0.07],
+    [0.14, 0.39, 0.09]
+  ]
+}
+```
 
-* 📌 Dual-model approach (CNN + LSTM) for comprehensive detection
-* 📌 End-to-end pipeline for both images and videos
-* 📌 Fully JavaScript-based ML system
-* 📌 Scalable and easy to integrate into web applications
+`label` is `0` for real and `1` for fake.
 
----
+## Training
 
-## 🤝 Contributing
+Check dataset folders:
 
-Contributions are welcome! Feel free to fork the repository and submit improvements.
+```bash
+npm run check:data
+```
 
----
+Train CNN:
 
-## 📜 License
+```bash
+npm run train:cnn
+```
 
-This project is licensed under the MIT License.
+Train LSTM:
 
----
+```bash
+npm run train:lstm
+```
 
-## 👨‍💻 Author
+Custom training commands:
 
-Your Name
-GitHub: https://github.com/your-username
+```bash
+node CNN/train.js CNN/dataset CNN/saved-model 30 16
+node LSTM/train.js LSTM/dataset LSTM/saved-model 30 8 12 64
+```
 
----
+Training writes:
 
-## ⭐ Support
+```text
+saved-model/
+  model.json
+  weights.bin
+  labels.json
+  training-report.json
+```
 
-If you like this project, give it a ⭐ and share it!
+## Accuracy Plan
+
+For stronger accuracy, use balanced real/fake data, hold out a validation set, avoid duplicate frames across train and validation, and evaluate on videos from creators or generation methods not seen during training. A practical hackathon baseline is 500+ real and 500+ fake CNN training images, then improve with more data and cleaner labels.
+
+## Hackathon Pitch
+
+DeepFake Analysis is not just a classifier. It is a review workflow: model status, evidence routing, reviewer-readable decisions, and auditable training artifacts. That makes it easier to demo, explain, and defend.
+
+## Scripts
+
+```bash
+npm start
+npm run check:data
+npm run train:cnn
+npm run train:lstm
+```
+
+## Notes
+
+The UI can run immediately. Real model accuracy requires labeled datasets, which are not committed to the repository because media datasets are usually large and license-restricted.

@@ -2,30 +2,33 @@ const tabs = document.querySelectorAll(".tab");
 const input = document.querySelector("#media-input");
 const imagePreview = document.querySelector("#image-preview");
 const videoPreview = document.querySelector("#video-preview");
+const emptyPreview = document.querySelector("#empty-preview");
 const analyzeButton = document.querySelector("#analyze-button");
+const resetButton = document.querySelector("#reset-button");
 const statusDot = document.querySelector("#status-dot");
 const statusText = document.querySelector("#status-text");
 const scoreValue = document.querySelector("#score-value");
+const meterFill = document.querySelector("#meter-fill");
 const pipelineValue = document.querySelector("#pipeline-value");
-const signalValue = document.querySelector("#signal-value");
 const decisionValue = document.querySelector("#decision-value");
+const modelValue = document.querySelector("#model-value");
+const signalList = document.querySelector("#signal-list");
+const routePill = document.querySelector("#route-pill");
+const dropSubtitle = document.querySelector("#drop-subtitle");
+const cnnStatus = document.querySelector("#cnn-status");
+const lstmStatus = document.querySelector("#lstm-status");
 
 let mode = "image";
 let selectedFile = null;
+let previewUrl = null;
 
 function setMode(nextMode) {
   mode = nextMode;
-  selectedFile = null;
-  input.value = "";
+  tabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.mode === nextMode));
   input.accept = nextMode === "image" ? "image/*" : "video/*";
-  imagePreview.style.display = "none";
-  videoPreview.style.display = "none";
-  analyzeButton.disabled = true;
-  updateStatus("idle", "Waiting for media");
-
-  tabs.forEach((tab) => {
-    tab.classList.toggle("active", tab.dataset.mode === nextMode);
-  });
+  routePill.textContent = nextMode === "image" ? "CNN route" : "LSTM route";
+  dropSubtitle.textContent = nextMode === "image" ? "Upload a face image, screenshot, or frame export." : "Upload a short video clip for temporal review.";
+  resetMedia();
 }
 
 function updateStatus(kind, text) {
@@ -33,21 +36,52 @@ function updateStatus(kind, text) {
   statusText.textContent = text;
 }
 
-function stableScore(file) {
-  const seed = Array.from(file.name).reduce((total, char) => total + char.charCodeAt(0), 0);
-  const sizeFactor = Math.min(38, Math.round(file.size / 120000));
-  return Math.max(8, Math.min(94, 22 + (seed % 34) + sizeFactor));
+function resetMedia() {
+  selectedFile = null;
+  input.value = "";
+  analyzeButton.disabled = true;
+  imagePreview.style.display = "none";
+  videoPreview.style.display = "none";
+  emptyPreview.style.display = "block";
+  scoreValue.textContent = "--";
+  meterFill.style.width = "0%";
+  pipelineValue.textContent = "--";
+  decisionValue.textContent = "--";
+  modelValue.textContent = "--";
+  signalList.innerHTML = "<li>No evidence analyzed yet.</li>";
+  updateStatus("idle", "Waiting for media");
+
+  if (previewUrl) {
+    URL.revokeObjectURL(previewUrl);
+    previewUrl = null;
+  }
 }
 
-function showResult(score) {
-  const highRisk = score >= 68;
-  const mediumRisk = score >= 42 && score < 68;
+function setModelReadiness(status) {
+  cnnStatus.textContent = status.image ? "Ready" : "Untrained";
+  lstmStatus.textContent = status.video ? "Ready" : "Untrained";
+}
 
-  scoreValue.textContent = `${score}%`;
-  pipelineValue.textContent = mode === "image" ? "CNN image scan" : "LSTM frame sequence";
-  signalValue.textContent = highRisk ? "Compression and texture mismatch" : mediumRisk ? "Mixed visual consistency" : "Low anomaly pattern";
-  decisionValue.textContent = highRisk ? "Review recommended" : mediumRisk ? "Needs model validation" : "Likely clean";
-  updateStatus(highRisk ? "danger" : mediumRisk ? "warn" : "ok", "Analysis complete");
+async function loadModelStatus() {
+  try {
+    const response = await fetch("/api/model-status");
+    const status = await response.json();
+    setModelReadiness(status);
+  } catch (_error) {
+    cnnStatus.textContent = "Offline";
+    lstmStatus.textContent = "Offline";
+  }
+}
+
+function applyResult(result) {
+  const kind = result.score >= 70 ? "danger" : result.score >= 45 ? "warn" : "ok";
+  scoreValue.textContent = `${result.score}%`;
+  meterFill.style.width = `${result.score}%`;
+  pipelineValue.textContent = result.mode === "image" ? "CNN image scan" : "LSTM sequence scan";
+  decisionValue.textContent = result.decision;
+  modelValue.textContent = result.modelReady ? `trained ${result.modelSummary.validationAccuracy * 100}% val acc` : "training data needed";
+  signalList.innerHTML = result.signals.map((signal) => `<li><strong>${signal.name}</strong><span>${signal.value}</span></li>`).join("");
+  updateStatus(kind, "Analysis complete");
 }
 
 tabs.forEach((tab) => {
@@ -57,16 +91,19 @@ tabs.forEach((tab) => {
 input.addEventListener("change", () => {
   selectedFile = input.files[0] || null;
   analyzeButton.disabled = !selectedFile;
-
   imagePreview.style.display = "none";
   videoPreview.style.display = "none";
+  emptyPreview.style.display = selectedFile ? "none" : "block";
 
   if (!selectedFile) {
     updateStatus("idle", "Waiting for media");
     return;
   }
 
-  const previewUrl = URL.createObjectURL(selectedFile);
+  if (previewUrl) {
+    URL.revokeObjectURL(previewUrl);
+  }
+  previewUrl = URL.createObjectURL(selectedFile);
 
   if (mode === "image") {
     imagePreview.src = previewUrl;
@@ -79,18 +116,33 @@ input.addEventListener("change", () => {
   updateStatus("warn", "Ready to analyze");
 });
 
-analyzeButton.addEventListener("click", () => {
+analyzeButton.addEventListener("click", async () => {
   if (!selectedFile) {
     return;
   }
 
-  updateStatus("warn", "Analyzing media");
+  updateStatus("warn", "Analyzing evidence");
   analyzeButton.disabled = true;
 
-  window.setTimeout(() => {
-    showResult(stableScore(selectedFile));
+  try {
+    const response = await fetch("/api/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        mode,
+        name: selectedFile.name,
+        size: selectedFile.size,
+        type: selectedFile.type
+      })
+    });
+    applyResult(await response.json());
+  } catch (_error) {
+    updateStatus("danger", "Analysis failed");
+  } finally {
     analyzeButton.disabled = false;
-  }, 700);
+  }
 });
 
+resetButton.addEventListener("click", resetMedia);
 setMode("image");
+loadModelStatus();

@@ -3,38 +3,61 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>DeepFake Analysis</title>
+    <title>DeepFake Analysis Lab</title>
     <link rel="stylesheet" href="/style.css">
   </head>
   <body>
     <main class="shell">
-      <section class="workspace" aria-labelledby="title">
-        <div class="panel intro">
-          <p class="eyebrow">CNN + LSTM workflow</p>
+      <section class="hero" aria-labelledby="title">
+        <div>
+          <p class="eyebrow">Forensic AI Lab</p>
           <h1 id="title">DeepFake Analysis</h1>
           <p class="lede">
-            Upload an image or video to preview a local analysis workflow. This demo does not include a trained model, so results are confidence-style heuristics until real TensorFlow.js models are added.
+            A dual-pipeline detector for suspicious images and videos, combining CNN image evidence, LSTM temporal reasoning, model readiness checks, and a clear reviewer workflow.
           </p>
         </div>
+        <div class="hero-stats" aria-label="Project readiness">
+          <div>
+            <strong id="cnn-status">Checking</strong>
+            <span>CNN model</span>
+          </div>
+          <div>
+            <strong id="lstm-status">Checking</strong>
+            <span>LSTM model</span>
+          </div>
+          <div>
+            <strong>2 paths</strong>
+            <span>Image + video</span>
+          </div>
+        </div>
+      </section>
 
+      <section class="workspace">
         <div class="panel analyzer">
-          <div class="tabs" role="tablist" aria-label="Analysis type">
-            <button class="tab active" type="button" data-mode="image">Image</button>
-            <button class="tab" type="button" data-mode="video">Video</button>
+          <div class="toolbar">
+            <div class="tabs" role="tablist" aria-label="Analysis type">
+              <button class="tab active" type="button" data-mode="image">Image</button>
+              <button class="tab" type="button" data-mode="video">Video</button>
+            </div>
+            <span id="route-pill" class="route-pill">CNN route</span>
           </div>
 
           <label class="dropzone" for="media-input">
             <input id="media-input" type="file" accept="image/*">
-            <span class="drop-title">Choose media</span>
-            <span class="drop-subtitle">Images use the CNN path; videos use the LSTM path.</span>
+            <span class="drop-title">Choose evidence file</span>
+            <span id="drop-subtitle" class="drop-subtitle">Upload a face image, screenshot, or frame export.</span>
           </label>
 
           <div class="preview-wrap">
-            <img id="image-preview" alt="Selected preview">
+            <img id="image-preview" alt="Selected evidence preview">
             <video id="video-preview" controls muted playsinline></video>
+            <span id="empty-preview">Preview appears here</span>
           </div>
 
-          <button id="analyze-button" class="primary" type="button" disabled>Analyze</button>
+          <div class="actions">
+            <button id="analyze-button" class="primary" type="button" disabled>Analyze Evidence</button>
+            <button id="reset-button" class="secondary" type="button">Reset</button>
+          </div>
         </div>
 
         <aside class="panel results" aria-live="polite">
@@ -46,21 +69,45 @@
             <span id="score-value">--</span>
             <span>risk score</span>
           </div>
+          <div class="meter" aria-hidden="true">
+            <span id="meter-fill"></span>
+          </div>
           <dl>
             <div>
               <dt>Pipeline</dt>
               <dd id="pipeline-value">--</dd>
             </div>
             <div>
-              <dt>Signal</dt>
-              <dd id="signal-value">--</dd>
-            </div>
-            <div>
               <dt>Decision</dt>
               <dd id="decision-value">--</dd>
             </div>
+            <div>
+              <dt>Model</dt>
+              <dd id="model-value">--</dd>
+            </div>
           </dl>
+          <div class="signals">
+            <h2>Evidence Signals</h2>
+            <ul id="signal-list">
+              <li>No evidence analyzed yet.</li>
+            </ul>
+          </div>
         </aside>
+      </section>
+
+      <section class="review-grid" aria-label="Project strengths">
+        <article>
+          <h2>Trainable CNN</h2>
+          <p>Binary image classifier with augmentation, validation metrics, labels, and saved TensorFlow.js model artifacts.</p>
+        </article>
+        <article>
+          <h2>Temporal LSTM</h2>
+          <p>Sequence model for frame-level features, ready for video inconsistency signals after feature extraction.</p>
+        </article>
+        <article>
+          <h2>Audit Ready</h2>
+          <p>Every run returns a score, decision, model-readiness state, and reviewer-friendly signal summary.</p>
+        </article>
       </section>
     </main>
 
