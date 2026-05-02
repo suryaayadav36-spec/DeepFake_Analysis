@@ -79,9 +79,66 @@ function applyResult(result) {
   meterFill.style.width = `${result.score}%`;
   pipelineValue.textContent = result.mode === "image" ? "CNN image scan" : "LSTM sequence scan";
   decisionValue.textContent = result.decision;
-  modelValue.textContent = result.modelReady ? `trained ${result.modelSummary.validationAccuracy * 100}% val acc` : "training data needed";
+  modelValue.textContent = result.modelReady ? `trained ${result.modelSummary.validationAccuracy * 100}% val acc` : `screening ${Math.round(result.confidence * 100)}% confidence`;
   signalList.innerHTML = result.signals.map((signal) => `<li><strong>${signal.name}</strong><span>${signal.value}</span></li>`).join("");
   updateStatus(kind, "Analysis complete");
+}
+
+function extractImageMetrics() {
+  if (mode !== "image" || !imagePreview.complete || !imagePreview.naturalWidth) {
+    return null;
+  }
+
+  const canvas = document.createElement("canvas");
+  const size = 96;
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  context.drawImage(imagePreview, 0, 0, size, size);
+  const pixels = context.getImageData(0, 0, size, size).data;
+  const luminance = [];
+  let brightness = 0;
+  let saturation = 0;
+
+  for (let index = 0; index < pixels.length; index += 4) {
+    const red = pixels[index] / 255;
+    const green = pixels[index + 1] / 255;
+    const blue = pixels[index + 2] / 255;
+    const max = Math.max(red, green, blue);
+    const min = Math.min(red, green, blue);
+    const lum = red * 0.2126 + green * 0.7152 + blue * 0.0722;
+    luminance.push(lum);
+    brightness += lum;
+    saturation += max === 0 ? 0 : (max - min) / max;
+  }
+
+  brightness /= luminance.length;
+  saturation /= luminance.length;
+
+  let variance = 0;
+  for (const lum of luminance) {
+    variance += (lum - brightness) ** 2;
+  }
+  const contrast = Math.sqrt(variance / luminance.length);
+
+  let edges = 0;
+  let comparisons = 0;
+  for (let y = 0; y < size - 1; y += 1) {
+    for (let x = 0; x < size - 1; x += 1) {
+      const current = luminance[y * size + x];
+      const right = luminance[y * size + x + 1];
+      const down = luminance[(y + 1) * size + x];
+      edges += Math.abs(current - right) + Math.abs(current - down);
+      comparisons += 2;
+    }
+  }
+
+  return {
+    brightness: Number(brightness.toFixed(4)),
+    contrast: Number(contrast.toFixed(4)),
+    edgeDensity: Number((edges / comparisons).toFixed(4)),
+    saturation: Number(saturation.toFixed(4))
+  };
 }
 
 tabs.forEach((tab) => {
@@ -132,7 +189,8 @@ analyzeButton.addEventListener("click", async () => {
         mode,
         name: selectedFile.name,
         size: selectedFile.size,
-        type: selectedFile.type
+        type: selectedFile.type,
+        metrics: extractImageMetrics()
       })
     });
     applyResult(await response.json());
