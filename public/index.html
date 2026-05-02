@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DeepFake Analysis</title>
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="workspace" aria-labelledby="title">
+        <div class="panel intro">
+          <p class="eyebrow">CNN + LSTM workflow</p>
+          <h1 id="title">DeepFake Analysis</h1>
+          <p class="lede">
+            Upload an image or video to preview a local analysis workflow. This demo does not include a trained model, so results are confidence-style heuristics until real TensorFlow.js models are added.
+          </p>
+        </div>
+
+        <div class="panel analyzer">
+          <div class="tabs" role="tablist" aria-label="Analysis type">
+            <button class="tab active" type="button" data-mode="image">Image</button>
+            <button class="tab" type="button" data-mode="video">Video</button>
+          </div>
+
+          <label class="dropzone" for="media-input">
+            <input id="media-input" type="file" accept="image/*">
+            <span class="drop-title">Choose media</span>
+            <span class="drop-subtitle">Images use the CNN path; videos use the LSTM path.</span>
+          </label>
+
+          <div class="preview-wrap">
+            <img id="image-preview" alt="Selected preview">
+            <video id="video-preview" controls muted playsinline></video>
+          </div>
+
+          <button id="analyze-button" class="primary" type="button" disabled>Analyze</button>
+        </div>
+
+        <aside class="panel results" aria-live="polite">
+          <div class="result-head">
+            <span id="status-dot" class="dot idle"></span>
+            <span id="status-text">Waiting for media</span>
+          </div>
+          <div class="score">
+            <span id="score-value">--</span>
+            <span>risk score</span>
+          </div>
+          <dl>
+            <div>
+              <dt>Pipeline</dt>
+              <dd id="pipeline-value">--</dd>
+            </div>
+            <div>
+              <dt>Signal</dt>
+              <dd id="signal-value">--</dd>
+            </div>
+            <div>
+              <dt>Decision</dt>
+              <dd id="decision-value">--</dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

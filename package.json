@@ -1,0 +1,17 @@
+{
+  "name": "deepfake-analysis",
+  "version": "1.0.0",
+  "description": "Deepfake analysis demo with image and video upload workflows.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "train:cnn": "node CNN/train.js CNN/dataset CNN/saved-model 12 16",
+    "train:lstm": "node LSTM/train.js LSTM/dataset LSTM/saved-model 12 8 12 64"
+  },
+  "keywords": [
+    "deepfake",
+    "analysis",
+    "demo"
+  ],
+  "license": "MIT"
+}
